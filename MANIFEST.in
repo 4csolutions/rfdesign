@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include rfdesign *.css
+recursive-include rfdesign *.csv
+recursive-include rfdesign *.html
+recursive-include rfdesign *.ico
+recursive-include rfdesign *.js
+recursive-include rfdesign *.json
+recursive-include rfdesign *.md
+recursive-include rfdesign *.png
+recursive-include rfdesign *.py
+recursive-include rfdesign *.svg
+recursive-include rfdesign *.txt
+recursive-exclude rfdesign *.pyc
