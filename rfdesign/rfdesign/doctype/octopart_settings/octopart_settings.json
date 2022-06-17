@@ -1,0 +1,47 @@
+{
+ "actions": [],
+ "allow_events_in_timeline": 1,
+ "creation": "2022-06-04 20:05:16.234317",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "nexar_client_id",
+  "nexar_client_secret"
+ ],
+ "fields": [
+  {
+   "fieldname": "nexar_client_id",
+   "fieldtype": "Data",
+   "label": "Nexar Client ID"
+  },
+  {
+   "fieldname": "nexar_client_secret",
+   "fieldtype": "Password",
+   "label": "Nexar Client Secret"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-06-04 20:05:16.234317",
+ "modified_by": "Administrator",
+ "module": "RFDesign",
+ "name": "Octopart Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

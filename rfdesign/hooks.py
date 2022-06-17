@@ -9,6 +9,51 @@ app_color = "grey"
 app_email = "info@4csolutions.in"
 app_license = "MIT"
 
+fixtures = [
+	{
+		"doctype": "Custom Field",
+		"filters" : [
+            [
+                "name",
+                "in",
+                [
+					'Item Supplier-supplier_stock',
+					'Item Supplier-lead_time',
+					'Item Supplier-price',
+					'Item-supplier_options4',
+					'Item-last_sync_date4',
+					'Item-rohs4',
+					'Item-manufacturer_lifecycle4',
+					'Item-manufacturer_part_number4',
+					'Item-manufacturer_name4',
+					'Item-solution_4',
+					'Item-supplier_options3',
+					'Item-last_sync_date3',
+					'Item-rohs3',
+					'Item-manufacturer_lifecycle3',
+					'Item-manufacturer_part_number3',
+					'Item-manufacturer_name3',
+					'Item-solution_3',
+					'Item-last_sync_date2',
+					'Item-supplier_options2',
+					'Item-rohs2',
+					'Item-manufacturer_lifecycle2',
+					'Item-manufacturer_part_number2',
+					'Item-manufacturer_name2',
+					'Item-solution_2',
+					'Item-supplier_options1',
+					'Item-last_sync_date1',
+					'Item-rohs1',
+					'Item-manufacturer_lifecycle1',
+					'Item-manufacturer_part_number1',
+					'Item-manufacturer_name1',
+					'Item-solution_1'
+				]
+			]
+		]
+	}
+]
+
 # Includes in <head>
 # ------------------
 
@@ -35,6 +80,7 @@ app_license = "MIT"
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
+doctype_list_js = {"Item" : "public/js/item_list.js"}
 
 # Home Pages
 # ----------
