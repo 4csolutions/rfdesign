@@ -63,6 +63,8 @@ def update_item_solutions():
 
                 if results:
                     for it in results.get("supSearchMpn",{}).get("results",{}):
+                      mfg = update_item.get("manufacturer_name" + str(i))
+                      if mfg and it.get("part",{}).get("manufacturer",{}).get("name",{}) == mfg:
                         # Specs Iteration to setup Manufacturer Lifecycle Status & RoHS
                         for spec in it.get("part",{}).get("specs",{}):
                             if spec.get("attribute",{}).get("name",{}) == "Manufacturer Lifecycle Status":
