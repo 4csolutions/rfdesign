@@ -73,6 +73,11 @@ def update_item_solutions():
                             elif spec.get("attribute",{}).get("name",{}) == "RoHS":
                                 # frappe.logger("frappe.web").debug({"RoHS": spec.get("displayValue",{})})
                                 update_item.db_set("rohs" + str(i), spec.get("displayValue",{}))
+                        
+                        if update_item.get("manufacturer_lifecycle" + str(i)) == "":
+                          update_item.db_set("manufacturer_lifecycle" + str(i), "Not Found")
+                        if update_item.get("rohs" + str(i)):
+                          update_item.db_set("rohs" + str(i), "Not Found")
 
                         supplier_items_mpn = "supplier_options" + str(i)
                         last_sync_date = "last_sync_date" + str(i)
