@@ -76,7 +76,7 @@ def update_item_solutions():
                         
                         if update_item.get("manufacturer_lifecycle" + str(i)) == "":
                           update_item.db_set("manufacturer_lifecycle" + str(i), "Not Found")
-                        if update_item.get("rohs" + str(i)):
+                        if update_item.get("rohs" + str(i)) == "":
                           update_item.db_set("rohs" + str(i), "Not Found")
 
                         supplier_items_mpn = "supplier_options" + str(i)
