@@ -95,14 +95,18 @@ def update_item_solutions():
                   if(seller.get("company",{}).get("name",{}) in approved_suppliers):
                     for offer in seller.get("offers",{}):
                         if (flt(offer.get("inventoryLevel",{})) > 0):
+                          frappe.logger("frappe.web").debug({"Offer Price": flt( offer.get("prices",{})[-1].get("convertedPrice",{}) )})
+
                           if (default_supplier and (flt(default_supplier.get("price")) > flt( offer.get("prices",{})[-1].get("convertedPrice",{}) )) ):
-                            default_supplier = ({
+                            default_supplier = {
                               "supplier": seller.get("company",{}).get("name",{}),
                               "supplier_part_no": offer.get("sku",{}),
                               "supplier_stock": offer.get("inventoryLevel",{}),
                               "lead_time": offer.get("factoryLeadDays",{}),
                               "price": offer.get("prices",{})[-1].get("convertedPrice",{})
-                            })
+                            }
+                            frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
+
 
                         # frappe.logger("frappe.web").debug({"Supplier Options": supplier_items_mpn})
                         update_item.append(supplier_items_mpn, {
@@ -116,6 +120,7 @@ def update_item_solutions():
                 frappe.db.commit()
                 update_item.reload()
     if default_supplier:
+      frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
       update_item.append("supplier_items", default_supplier)
       frappe.db.commit()
       update_item.reload()
