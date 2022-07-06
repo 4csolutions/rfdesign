@@ -60,7 +60,7 @@ def update_item_solutions():
               'mpn': update_item.get(mpn)
           }
           results = nexar.get_query(QUERY_MPN, variables)
-          frappe.logger("frappe.web").debug({"Results": results})
+          # frappe.logger("frappe.web").debug({"Results": results})
 
           if results:
             for it in results.get("supSearchMpn",{}).get("results",{}):
@@ -94,6 +94,7 @@ def update_item_solutions():
                   # frappe.logger("frappe.web").debug({"Seller": seller})
                   if(seller.get("company",{}).get("name",{}) in approved_suppliers):
                     for offer in seller.get("offers",{}):
+                        frappe.logger("frappe.web").debug({"Inventory Level": flt(offer.get("inventoryLevel",{})) })
                         if (flt(offer.get("inventoryLevel",{})) > 0):
                           frappe.logger("frappe.web").debug({"Offer Price": flt( offer.get("prices",{})[-1].get("convertedPrice",{}) )})
 
