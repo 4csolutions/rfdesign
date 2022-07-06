@@ -115,7 +115,7 @@ def update_item_solutions():
 
                         # frappe.logger("frappe.web").debug({"Supplier Options": supplier_items_mpn})
                         price = 0
-                        for j in range(len(offer.get("prices",{})),0,-1):
+                        for j in range(len(offer.get("prices",{}))-1, -1, -1):
                           if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
                             price = offer.get("prices",{})[j].get("convertedPrice",{})
 
