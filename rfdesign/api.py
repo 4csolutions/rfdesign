@@ -111,15 +111,13 @@ def update_item_solutions():
                               "lead_time": offer.get("factoryLeadDays",{}),
                               "price": offer.get("prices",{})[-1].get("convertedPrice",{})
                             }
-                          frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
+                          # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
 
                         # frappe.logger("frappe.web").debug({"Supplier Options": supplier_items_mpn})
                         price = 0
-                        for j in range(1, len(offer.get("prices",{}))):
-                          if flt(offer.get("prices",{})[j].get("quantity",{})) > 1000:
-                            price = offer.get("prices",{})[j-1].get("convertedPrice",{})
-                        if not price:
-                          price = offer.get("prices",{})[-1].get("convertedPrice",{})
+                        for j in range(len(offer.get("prices",{})),0,-1):
+                          if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
+                            price = offer.get("prices",{})[j].get("convertedPrice",{})
 
                         update_item.append(supplier_items_mpn, {
                             "supplier": seller.get("company",{}).get("name",{}),
@@ -132,7 +130,7 @@ def update_item_solutions():
                 frappe.db.commit()
                 update_item.reload()
     if default_supplier:
-      frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
+      # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
       update_item.append("supplier_items", default_supplier)
       update_item.save()
       frappe.db.commit()
