@@ -131,6 +131,11 @@ def update_item_solutions():
                 update_item.reload()
     if default_supplier:
       # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
+      # Clear supplier item table
+      frappe.db.delete("Item Supplier", {
+          "parent" : update_item.name,
+          "parentfield" : "supplier_items"
+      })
       update_item.append("supplier_items", default_supplier)
       update_item.save()
       frappe.db.commit()
