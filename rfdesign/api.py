@@ -1,3 +1,4 @@
+from turtle import up
 import frappe
 from frappe import _
 from frappe.utils import getdate, flt
@@ -26,6 +27,7 @@ query Search($mpn: String) {
             sku
             inventoryLevel
             factoryLeadDays
+            moq
             prices {
               quantity
               convertedPrice
@@ -101,6 +103,7 @@ def update_item_solutions():
                               "supplier_part_no": offer.get("sku",{}),
                               "supplier_stock": offer.get("inventoryLevel",{}),
                               "lead_time": offer.get("factoryLeadDays",{}),
+                              "moq": offer.get("moq",{}),
                               "price": offer.get("prices",{})[-1].get("convertedPrice",{})
                             }
                           elif (not default_supplier):
@@ -109,6 +112,7 @@ def update_item_solutions():
                               "supplier_part_no": offer.get("sku",{}),
                               "supplier_stock": offer.get("inventoryLevel",{}),
                               "lead_time": offer.get("factoryLeadDays",{}),
+                              "moq": offer.get("moq",{}),
                               "price": offer.get("prices",{})[-1].get("convertedPrice",{})
                             }
                           # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
@@ -124,6 +128,7 @@ def update_item_solutions():
                             "supplier_part_no": offer.get("sku",{}),
                             "supplier_stock": offer.get("inventoryLevel",{}),
                             "lead_time": offer.get("factoryLeadDays",{}),
+                            "moq": offer.get("moq",{}),
                             "price": price
                         })
                     update_item.save()
@@ -136,6 +141,8 @@ def update_item_solutions():
           "parent" : update_item.name,
           "parentfield" : "supplier_items"
       })
+      update_item.item_defaults[0].default_supplier = default_supplier.get("supplier",{})
+      update_item.db_set("lead_time_days", default_supplier.get("lead_time",{}))
       update_item.append("supplier_items", default_supplier)
       update_item.save()
       frappe.db.commit()
