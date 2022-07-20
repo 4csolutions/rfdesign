@@ -29,7 +29,7 @@ query Search($mpn: String) {
             moq
             prices {
               quantity
-              convertedPrice
+              price
             }
           }
         }
@@ -68,17 +68,20 @@ def update_item_solutions():
               mfg = update_item.get("manufacturer_name" + str(i))
               if mfg and it.get("part",{}).get("manufacturer",{}).get("name",{}) == mfg:
                 # Specs Iteration to setup Manufacturer Lifecycle Status & RoHS
+                manufacturer_lifecycle_status = rohs = ""
                 for spec in it.get("part",{}).get("specs",{}):
                   if spec.get("attribute",{}).get("name",{}) == "Manufacturer Lifecycle Status":
                       # frappe.logger("frappe.web").debug({"Manufacturer Lifecycle Status": spec.get("displayValue",{})})
-                      update_item.db_set("manufacturer_lifecycle" + str(i), spec.get("displayValue",{}))
+                      manufacturer_lifecycle_status = spec.get("displayValue",{})
+                      update_item.db_set("manufacturer_lifecycle" + str(i), manufacturer_lifecycle_status)
                   elif spec.get("attribute",{}).get("name",{}) == "RoHS":
                       # frappe.logger("frappe.web").debug({"RoHS": spec.get("displayValue",{})})
-                      update_item.db_set("rohs" + str(i), spec.get("displayValue",{}))
+                      rohs = spec.get("displayValue",{})
+                      update_item.db_set("rohs" + str(i), rohs)
                 
-                if update_item.get("manufacturer_lifecycle" + str(i)) == "":
+                if manufacturer_lifecycle_status == "":
                   update_item.db_set("manufacturer_lifecycle" + str(i), "Not Found")
-                if update_item.get("rohs" + str(i)) == "":
+                if rohs == "":
                   update_item.db_set("rohs" + str(i), "Not Found")
 
                 supplier_items_mpn = "supplier_options" + str(i)
@@ -90,20 +93,21 @@ def update_item_solutions():
                     "parentfield" : supplier_items_mpn
                 })
                 update_item.save()
+                frappe.db.commit()
 
                 for seller in it.get("part",{}).get("sellers",{}):
                   # frappe.logger("frappe.web").debug({"Seller": seller})
                   if(seller.get("company",{}).get("name",{}) in approved_suppliers):
                     for offer in seller.get("offers",{}):
                         if (flt(offer.get("inventoryLevel",{})) > 0):
-                          if (default_supplier and (flt(default_supplier.get("price")) > flt( offer.get("prices",{})[-1].get("convertedPrice",{}) )) ):
+                          if (default_supplier and (flt(default_supplier.get("price")) > flt( offer.get("prices",{})[-1].get("price",{}) )) ):
                             default_supplier = {
                               "supplier": seller.get("company",{}).get("name",{}),
                               "supplier_part_no": offer.get("sku",{}),
                               "supplier_stock": offer.get("inventoryLevel",{}),
                               "lead_time": offer.get("factoryLeadDays",{}),
                               "moq": offer.get("moq",{}),
-                              "price": offer.get("prices",{})[-1].get("convertedPrice",{})
+                              "price": offer.get("prices",{})[-1].get("price",{})
                             }
                           elif (not default_supplier):
                             default_supplier = {
@@ -112,7 +116,7 @@ def update_item_solutions():
                               "supplier_stock": offer.get("inventoryLevel",{}),
                               "lead_time": offer.get("factoryLeadDays",{}),
                               "moq": offer.get("moq",{}),
-                              "price": offer.get("prices",{})[-1].get("convertedPrice",{})
+                              "price": offer.get("prices",{})[-1].get("price",{})
                             }
                           # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
 
@@ -120,7 +124,8 @@ def update_item_solutions():
                         price = 0
                         for j in range(len(offer.get("prices",{}))-1, -1, -1):
                           if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
-                            price = offer.get("prices",{})[j].get("convertedPrice",{})
+                            price = offer.get("prices",{})[j].get("price",{})
+                            break
 
                         update_item.append(supplier_items_mpn, {
                             "supplier": seller.get("company",{}).get("name",{}),
