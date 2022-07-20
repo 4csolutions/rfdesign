@@ -54,6 +54,14 @@ def update_item_solutions():
   for ep_item in ep_items:
     update_item = frappe.get_doc("Item", ep_item, as_dict=1)
     default_supplier = {}
+    # Clear supplier item table
+    frappe.db.delete("Item Supplier", {
+        "parent" : update_item.name,
+        "parentfield" : "supplier_items"
+    })
+    update_item.save()
+    frappe.db.commit()
+    update_item.reload()
     for i in range(1,5):
       mpn="manufacturer_part_number" + str(i)
       if update_item.get(mpn):
@@ -94,6 +102,7 @@ def update_item_solutions():
                 })
                 update_item.save()
                 frappe.db.commit()
+                update_item.reload()
 
                 for seller in it.get("part",{}).get("sellers",{}):
                   # frappe.logger("frappe.web").debug({"Seller": seller})
@@ -140,11 +149,6 @@ def update_item_solutions():
                 update_item.reload()
     if default_supplier:
       # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
-      # Clear supplier item table
-      frappe.db.delete("Item Supplier", {
-          "parent" : update_item.name,
-          "parentfield" : "supplier_items"
-      })
       update_item.item_defaults[0].default_supplier = default_supplier.get("supplier",{})
       update_item.db_set("lead_time_days", default_supplier.get("lead_time",{}))
       update_item.append("supplier_items", default_supplier)
