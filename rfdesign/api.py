@@ -29,7 +29,7 @@ query Search($mpn: String) {
             moq
             prices {
               quantity
-              price
+              convertedPrice
             }
           }
         }
@@ -100,14 +100,14 @@ def update_item_solutions():
                   if(seller.get("company",{}).get("name",{}) in approved_suppliers):
                     for offer in seller.get("offers",{}):
                         if (flt(offer.get("inventoryLevel",{})) > 0):
-                          if (default_supplier and (flt(default_supplier.get("price")) > flt( offer.get("prices",{})[-1].get("price",{}) )) ):
+                          if (default_supplier and (flt(default_supplier.get("price")) > flt( offer.get("prices",{})[-1].get("convertedPrice",{}) )) ):
                             default_supplier = {
                               "supplier": seller.get("company",{}).get("name",{}),
                               "supplier_part_no": offer.get("sku",{}),
                               "supplier_stock": offer.get("inventoryLevel",{}),
                               "lead_time": offer.get("factoryLeadDays",{}),
                               "moq": offer.get("moq",{}),
-                              "price": offer.get("prices",{})[-1].get("price",{})
+                              "price": offer.get("prices",{})[-1].get("convertedPrice",{})
                             }
                           elif (not default_supplier):
                             default_supplier = {
@@ -116,7 +116,7 @@ def update_item_solutions():
                               "supplier_stock": offer.get("inventoryLevel",{}),
                               "lead_time": offer.get("factoryLeadDays",{}),
                               "moq": offer.get("moq",{}),
-                              "price": offer.get("prices",{})[-1].get("price",{})
+                              "price": offer.get("prices",{})[-1].get("convertedPrice",{})
                             }
                           # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
 
@@ -124,7 +124,7 @@ def update_item_solutions():
                         price = 0
                         for j in range(len(offer.get("prices",{}))-1, -1, -1):
                           if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
-                            price = offer.get("prices",{})[j].get("price",{})
+                            price = offer.get("prices",{})[j].get("convertedPrice",{})
                             break
 
                         update_item.append(supplier_items_mpn, {
