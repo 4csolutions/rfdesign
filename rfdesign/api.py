@@ -5,7 +5,7 @@ from rfdesign.nexar.nexarClient import NexarClient
 
 QUERY_MPN = '''
 query Search($mpn: String) {
-  supSearchMpn(q: $mpn, inStockOnly: true, currency: "AUD") {
+  supSearchMpn(q: $mpn, inStockOnly: true, country: "AU", currency: "AUD") {
     results {
       part {
         mpn
@@ -29,6 +29,8 @@ query Search($mpn: String) {
             moq
             prices {
               quantity
+              currency
+              price
               convertedPrice
             }
           }
@@ -108,42 +110,51 @@ def update_item_solutions():
                   # frappe.logger("frappe.web").debug({"Seller": seller})
                   if(seller.get("company",{}).get("name",{}) in approved_suppliers):
                     for offer in seller.get("offers",{}):
-                        if (flt(offer.get("inventoryLevel",{})) > 0):
-                          if (default_supplier and (flt(default_supplier.get("price")) > flt( offer.get("prices",{})[-1].get("convertedPrice",{}) )) ):
-                            default_supplier = {
-                              "supplier": seller.get("company",{}).get("name",{}),
-                              "supplier_part_no": offer.get("sku",{}),
-                              "supplier_stock": offer.get("inventoryLevel",{}),
-                              "lead_time": offer.get("factoryLeadDays",{}),
-                              "moq": offer.get("moq",{}),
-                              "price": offer.get("prices",{})[-1].get("convertedPrice",{})
-                            }
-                          elif (not default_supplier):
-                            default_supplier = {
-                              "supplier": seller.get("company",{}).get("name",{}),
-                              "supplier_part_no": offer.get("sku",{}),
-                              "supplier_stock": offer.get("inventoryLevel",{}),
-                              "lead_time": offer.get("factoryLeadDays",{}),
-                              "moq": offer.get("moq",{}),
-                              "price": offer.get("prices",{})[-1].get("convertedPrice",{})
-                            }
-                          # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
-
-                        # frappe.logger("frappe.web").debug({"Supplier Options": supplier_items_mpn})
-                        price = 0
+                      price = 0
+                      if (flt(offer.get("moq",{})) <= 1000 ):                          
                         for j in range(len(offer.get("prices",{}))-1, -1, -1):
                           if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
-                            price = offer.get("prices",{})[j].get("convertedPrice",{})
+                            if (offer.get("prices",{})[j].get("currency",{}) == "AUD"):
+                              price = offer.get("prices",{})[j].get("price",{})
+                            else:
+                              price = offer.get("prices",{})[j].get("convertedPrice",{})
                             break
-
-                        update_item.append(supplier_items_mpn, {
+                      else :
+                        if (offer.get("prices",{})[0].get("currency",{}) == "AUD"):
+                          price = offer.get("prices",{})[0].get("price",{}) 
+                        else:
+                          price = offer.get("prices",{})[0].get("convertedPrice",{})
+                          
+                      if (flt(offer.get("inventoryLevel",{})) > 0):
+                        if (default_supplier and (flt(default_supplier.get("price")) > price)):
+                          default_supplier = {
                             "supplier": seller.get("company",{}).get("name",{}),
                             "supplier_part_no": offer.get("sku",{}),
                             "supplier_stock": offer.get("inventoryLevel",{}),
                             "lead_time": offer.get("factoryLeadDays",{}),
                             "moq": offer.get("moq",{}),
                             "price": price
-                        })
+                          }
+                        elif (not default_supplier):
+                          default_supplier = {
+                            "supplier": seller.get("company",{}).get("name",{}),
+                            "supplier_part_no": offer.get("sku",{}),
+                            "supplier_stock": offer.get("inventoryLevel",{}),
+                            "lead_time": offer.get("factoryLeadDays",{}),
+                            "moq": offer.get("moq",{}),
+                            "price": price
+                          }
+                        # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
+
+                      # frappe.logger("frappe.web").debug({"Supplier Options": supplier_items_mpn})
+                      update_item.append(supplier_items_mpn, {
+                          "supplier": seller.get("company",{}).get("name",{}),
+                          "supplier_part_no": offer.get("sku",{}),
+                          "supplier_stock": offer.get("inventoryLevel",{}),
+                          "lead_time": offer.get("factoryLeadDays",{}),
+                          "moq": offer.get("moq",{}),
+                          "price": price
+                      })
                     update_item.save()
                 frappe.db.commit()
                 update_item.reload()
@@ -155,6 +166,5 @@ def update_item_solutions():
       update_item.save()
       frappe.db.commit()
       update_item.reload()
-
       
   frappe.msgprint("Octopart Update Finished", alert=True)
