@@ -110,8 +110,9 @@ def update_item_solutions():
                   # frappe.logger("frappe.web").debug({"Seller": seller})
                   if(seller.get("company",{}).get("name",{}) in approved_suppliers):
                     for offer in seller.get("offers",{}):
-                      price = 0
-                      if (flt(offer.get("moq",{})) <= 1000 ):                          
+                      price = price_moq = 0
+                      moq = flt(offer.get("moq",{}))
+                      if ( moq <= 1000 ):                          
                         for j in range(len(offer.get("prices",{}))-1, -1, -1):
                           if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
                             if (offer.get("prices",{})[j].get("currency",{}) == "AUD"):
@@ -121,19 +122,20 @@ def update_item_solutions():
                             break
                       else :
                         if (offer.get("prices",{})[0].get("currency",{}) == "AUD"):
-                          price = offer.get("prices",{})[0].get("price",{}) 
+                          price_moq = offer.get("prices",{})[0].get("price",{}) 
                         else:
-                          price = offer.get("prices",{})[0].get("convertedPrice",{})
-                          
+                          price_moq = offer.get("prices",{})[0].get("convertedPrice",{})
+
                       if (flt(offer.get("inventoryLevel",{})) > 0):
-                        if (default_supplier and (flt(default_supplier.get("price")) > price)):
+                        default_supplier_price = price if moq <= 1000 else price_moq
+                        if (default_supplier and (flt(default_supplier.get("price")) > default_supplier_price)):
                           default_supplier = {
                             "supplier": seller.get("company",{}).get("name",{}),
                             "supplier_part_no": offer.get("sku",{}),
                             "supplier_stock": offer.get("inventoryLevel",{}),
                             "lead_time": offer.get("factoryLeadDays",{}),
                             "moq": offer.get("moq",{}),
-                            "price": price
+                            "price": default_supplier_price
                           }
                         elif (not default_supplier):
                           default_supplier = {
@@ -142,7 +144,7 @@ def update_item_solutions():
                             "supplier_stock": offer.get("inventoryLevel",{}),
                             "lead_time": offer.get("factoryLeadDays",{}),
                             "moq": offer.get("moq",{}),
-                            "price": price
+                            "price": default_supplier_price
                           }
                         # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
 
