@@ -119,6 +119,16 @@ def update_item_solutions():
                           else:
                             price = offer.get("prices",{})[j].get("convertedPrice",{})
                           break
+                      
+                      frappe.logger("frappe.web").debug({
+                        "supplier": seller.get("company",{}).get("name",{}),
+                        "supplier_part_no": offer.get("sku",{}),
+                        "supplier_stock": offer.get("inventoryLevel",{}),
+                        "lead_time": offer.get("factoryLeadDays",{}),
+                        "moq": offer.get("moq",{}),
+                        "price": price
+                      })
+                      
                       if (flt(offer.get("inventoryLevel",{})) > 0):
                         if ( flt(offer.get("moq",{})) <= 1000 ):
                           moq_1k_soln = True
@@ -167,6 +177,7 @@ def update_item_solutions():
                       # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
 
                       # frappe.logger("frappe.web").debug({"Supplier Options": supplier_items_mpn})
+                      
                       update_item.append(supplier_items_mpn, {
                           "supplier": seller.get("company",{}).get("name",{}),
                           "supplier_part_no": offer.get("sku",{}),
@@ -181,7 +192,7 @@ def update_item_solutions():
     if default_supplier:
       # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
       update_item.item_defaults[0].default_supplier = default_supplier.get("supplier",{})
-      update_item.db_set("lead_time_days", default_supplier.get("lead_time",{}))
+      update_item.db_set("lead_time_days", default_supplier.get("lead_time",0))
       update_item.append("supplier_items", default_supplier)
       update_item.save()
       frappe.db.commit()
