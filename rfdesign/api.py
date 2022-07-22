@@ -77,7 +77,8 @@ def update_item_solutions():
           if results:
             for it in results.get("supSearchMpn",{}).get("results",{}):
               mfg = update_item.get("manufacturer_name" + str(i))
-              if mfg and it.get("part",{}).get("manufacturer",{}).get("name",{}) == mfg:
+              if mfg and (it.get("part",{}).get("manufacturer",{}).get("name",{}) == mfg) and \
+                (it.get("part",{}).get("mpn",{}) == mpn ):
                 # Specs Iteration to setup Manufacturer Lifecycle Status & RoHS
                 manufacturer_lifecycle_status = rohs = ""
                 for spec in it.get("part",{}).get("specs",{}):
@@ -128,7 +129,7 @@ def update_item_solutions():
                         "moq": offer.get("moq",{}),
                         "price": price
                       })
-                      
+
                       if (flt(offer.get("inventoryLevel",{})) > 0):
                         if ( flt(offer.get("moq",{})) <= 1000 ):
                           moq_1k_soln = True
@@ -192,7 +193,7 @@ def update_item_solutions():
     if default_supplier:
       # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
       update_item.item_defaults[0].default_supplier = default_supplier.get("supplier",{})
-      update_item.db_set("lead_time_days", default_supplier.get("lead_time",0))
+      update_item.db_set("lead_time_days", flt(default_supplier.get("lead_time",{})))
       update_item.append("supplier_items", default_supplier)
       update_item.save()
       frappe.db.commit()
