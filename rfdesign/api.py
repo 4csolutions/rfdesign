@@ -112,17 +112,16 @@ def update_item_solutions():
                   if(seller.get("company",{}).get("name",{}) in approved_suppliers):
                     for offer in seller.get("offers",{}):
                       price = 0
+                      for j in range(len(offer.get("prices",{}))-1, -1, -1):
+                        if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
+                          if (offer.get("prices",{})[j].get("currency",{}) == "AUD"):
+                            price = offer.get("prices",{})[j].get("price",{})
+                          else:
+                            price = offer.get("prices",{})[j].get("convertedPrice",{})
+                          break
                       if (flt(offer.get("inventoryLevel",{})) > 0):
-                        moq = flt(offer.get("moq",{}))
-                        if ( moq <= 1000 ):
+                        if ( flt(offer.get("moq",{})) <= 1000 ):
                           moq_1k_soln = True
-                          for j in range(len(offer.get("prices",{}))-1, -1, -1):
-                            if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
-                              if (offer.get("prices",{})[j].get("currency",{}) == "AUD"):
-                                price = offer.get("prices",{})[j].get("price",{})
-                              else:
-                                price = offer.get("prices",{})[j].get("convertedPrice",{})
-                              break
                           if (default_supplier and (flt(default_supplier.get("price")) > price)):
                             default_supplier = {
                               "supplier": seller.get("company",{}).get("name",{}),
