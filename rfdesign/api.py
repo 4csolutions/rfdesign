@@ -56,6 +56,7 @@ def update_item_solutions():
   for ep_item in ep_items:
     update_item = frappe.get_doc("Item", ep_item, as_dict=1)
     default_supplier = {}
+    moq_1k_soln = False
     # Clear supplier item table
     frappe.db.delete("Item Supplier", {
         "parent" : update_item.name,
@@ -110,43 +111,61 @@ def update_item_solutions():
                   # frappe.logger("frappe.web").debug({"Seller": seller})
                   if(seller.get("company",{}).get("name",{}) in approved_suppliers):
                     for offer in seller.get("offers",{}):
-                      price = price_moq = 0
-                      moq = flt(offer.get("moq",{}))
-                      if ( moq <= 1000 ):                          
-                        for j in range(len(offer.get("prices",{}))-1, -1, -1):
-                          if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
-                            if (offer.get("prices",{})[j].get("currency",{}) == "AUD"):
-                              price = offer.get("prices",{})[j].get("price",{})
-                            else:
-                              price = offer.get("prices",{})[j].get("convertedPrice",{})
-                            break
-                      else :
-                        if (offer.get("prices",{})[0].get("currency",{}) == "AUD"):
-                          price_moq = offer.get("prices",{})[0].get("price",{}) 
-                        else:
-                          price_moq = offer.get("prices",{})[0].get("convertedPrice",{})
-
+                      price = 0
                       if (flt(offer.get("inventoryLevel",{})) > 0):
-                        default_supplier_price = price if moq <= 1000 else price_moq
-                        if (default_supplier and (flt(default_supplier.get("price")) > default_supplier_price)):
-                          default_supplier = {
-                            "supplier": seller.get("company",{}).get("name",{}),
-                            "supplier_part_no": offer.get("sku",{}),
-                            "supplier_stock": offer.get("inventoryLevel",{}),
-                            "lead_time": offer.get("factoryLeadDays",{}),
-                            "moq": offer.get("moq",{}),
-                            "price": default_supplier_price
-                          }
-                        elif (not default_supplier):
-                          default_supplier = {
-                            "supplier": seller.get("company",{}).get("name",{}),
-                            "supplier_part_no": offer.get("sku",{}),
-                            "supplier_stock": offer.get("inventoryLevel",{}),
-                            "lead_time": offer.get("factoryLeadDays",{}),
-                            "moq": offer.get("moq",{}),
-                            "price": default_supplier_price
-                          }
-                        # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
+                        moq = flt(offer.get("moq",{}))
+                        if ( moq <= 1000 ):
+                          moq_1k_soln = True
+                          for j in range(len(offer.get("prices",{}))-1, -1, -1):
+                            if flt(offer.get("prices",{})[j].get("quantity",{})) <= 1000:
+                              if (offer.get("prices",{})[j].get("currency",{}) == "AUD"):
+                                price = offer.get("prices",{})[j].get("price",{})
+                              else:
+                                price = offer.get("prices",{})[j].get("convertedPrice",{})
+                              break
+                          if (default_supplier and (flt(default_supplier.get("price")) > price)):
+                            default_supplier = {
+                              "supplier": seller.get("company",{}).get("name",{}),
+                              "supplier_part_no": offer.get("sku",{}),
+                              "supplier_stock": offer.get("inventoryLevel",{}),
+                              "lead_time": offer.get("factoryLeadDays",{}),
+                              "moq": offer.get("moq",{}),
+                              "price": price
+                            }
+                          elif (not default_supplier):
+                            default_supplier = {
+                              "supplier": seller.get("company",{}).get("name",{}),
+                              "supplier_part_no": offer.get("sku",{}),
+                              "supplier_stock": offer.get("inventoryLevel",{}),
+                              "lead_time": offer.get("factoryLeadDays",{}),
+                              "moq": offer.get("moq",{}),
+                              "price": price
+                            }
+                        elif (not moq_1k_soln):
+                          if (offer.get("prices",{})[0].get("currency",{}) == "AUD"):
+                            price_moq = offer.get("prices",{})[0].get("price",{}) 
+                          else:
+                            price_moq = offer.get("prices",{})[0].get("convertedPrice",{})
+
+                          if (default_supplier and (flt(default_supplier.get("price")) > price_moq)):
+                            default_supplier = {
+                              "supplier": seller.get("company",{}).get("name",{}),
+                              "supplier_part_no": offer.get("sku",{}),
+                              "supplier_stock": offer.get("inventoryLevel",{}),
+                              "lead_time": offer.get("factoryLeadDays",{}),
+                              "moq": offer.get("moq",{}),
+                              "price": price_moq
+                            }
+                          elif (not default_supplier):
+                            default_supplier = {
+                              "supplier": seller.get("company",{}).get("name",{}),
+                              "supplier_part_no": offer.get("sku",{}),
+                              "supplier_stock": offer.get("inventoryLevel",{}),
+                              "lead_time": offer.get("factoryLeadDays",{}),
+                              "moq": offer.get("moq",{}),
+                              "price": price_moq
+                            }
+                      # frappe.logger("frappe.web").debug({"Deafult Supplier": default_supplier})
 
                       # frappe.logger("frappe.web").debug({"Supplier Options": supplier_items_mpn})
                       update_item.append(supplier_items_mpn, {
