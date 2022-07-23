@@ -121,16 +121,7 @@ def update_item_solutions():
                           else:
                             price = offer.get("prices",{})[j].get("convertedPrice",{})
                           break
-                      
-                      frappe.logger("frappe.web").debug({
-                        "supplier": seller.get("company",{}).get("name",{}),
-                        "supplier_part_no": offer.get("sku",{}),
-                        "supplier_stock": offer.get("inventoryLevel",{}),
-                        "lead_time": offer.get("factoryLeadDays",{}),
-                        "moq": offer.get("moq",{}),
-                        "price": price
-                      })
-
+                        
                       if (flt(offer.get("inventoryLevel",{})) > 0):
                         if ( flt(offer.get("moq",{})) <= 1000 ):
                           moq_1k_soln = True
