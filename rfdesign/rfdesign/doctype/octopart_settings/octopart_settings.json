@@ -7,7 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "nexar_client_id",
-  "nexar_client_secret"
+  "nexar_client_secret",
+  "enterprise_plan"
  ],
  "fields": [
   {
@@ -19,12 +20,18 @@
    "fieldname": "nexar_client_secret",
    "fieldtype": "Password",
    "label": "Nexar Client Secret"
+  },
+  {
+   "default": "0",
+   "fieldname": "enterprise_plan",
+   "fieldtype": "Check",
+   "label": "Enterprise Plan"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-06-04 20:05:16.234317",
+ "modified": "2022-08-25 14:36:03.147018",
  "modified_by": "Administrator",
  "module": "RFDesign",
  "name": "Octopart Settings",

@@ -17,6 +17,7 @@ fixtures = [
                 "name",
                 "in",
                 [
+					'Item Supplier-moq',
 					'Item Supplier-supplier_stock',
 					'Item Supplier-lead_time',
 					'Item Supplier-price',

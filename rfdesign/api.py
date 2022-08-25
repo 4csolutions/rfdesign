@@ -3,7 +3,7 @@ from frappe import _
 from frappe.utils import getdate, flt
 from rfdesign.nexar.nexarClient import NexarClient
 
-QUERY_MPN = '''
+QUERY_MPN_ENTERPRISE = '''
 query Search($mpn: String) {
   supSearchMpn(q: $mpn, inStockOnly: true, country: "AU", currency: "AUD") {
     results {
@@ -41,11 +41,44 @@ query Search($mpn: String) {
 }
 '''
 
+QUERY_MPN_BASIC = '''
+query Search($mpn: String) {
+  supSearchMpn(q: $mpn, inStockOnly: true, country: "AU", currency: "AUD") {
+    results {
+      part {
+        mpn
+        manufacturer {
+          name
+        }
+        sellers(authorizedOnly: true) {
+          company {
+            name
+          }
+          offers {
+            sku
+            inventoryLevel
+            factoryLeadDays
+            moq
+            prices {
+              quantity
+              currency
+              price
+              convertedPrice
+            }
+          }
+        }
+      }
+    }
+  }
+}
+'''
+
 @frappe.whitelist()
 def update_item_solutions():
   octopart_settings = frappe.get_doc('Octopart Settings')
   clientId = octopart_settings.nexar_client_id
   clientSecret = octopart_settings.get_password('nexar_client_secret')
+  is_enterprise_plan = octopart_settings.enterprise_plan
   nexar = NexarClient(clientId, clientSecret)
 
   ep_items = frappe.db.get_all("Item", filters = {"item_group": "Electronic Parts", "Disabled": 0})
@@ -71,7 +104,7 @@ def update_item_solutions():
           variables = {
               'mpn': update_item.get(mpn)
           }
-          results = nexar.get_query(QUERY_MPN, variables)
+          results = nexar.get_query( QUERY_MPN_ENTERPRISE if is_enterprise_plan else QUERY_MPN_BASIC, variables)
           # frappe.logger("frappe.web").debug({"Results": results})
 
           if results:
@@ -82,15 +115,16 @@ def update_item_solutions():
                 (it.get("part",{}).get("mpn",{}) == update_item.get(mpn)):
                 # Specs Iteration to setup Manufacturer Lifecycle Status & RoHS
                 manufacturer_lifecycle_status = rohs = ""
-                for spec in it.get("part",{}).get("specs",{}):
-                  if spec.get("attribute",{}).get("name",{}) == "Manufacturer Lifecycle Status":
-                      # frappe.logger("frappe.web").debug({"Manufacturer Lifecycle Status": spec.get("displayValue",{})})
-                      manufacturer_lifecycle_status = spec.get("displayValue",{})
-                      update_item.db_set("manufacturer_lifecycle" + str(i), manufacturer_lifecycle_status)
-                  elif spec.get("attribute",{}).get("name",{}) == "RoHS":
-                      # frappe.logger("frappe.web").debug({"RoHS": spec.get("displayValue",{})})
-                      rohs = spec.get("displayValue",{})
-                      update_item.db_set("rohs" + str(i), rohs)
+                if it.get("part",{}).get("specs",{}):
+                  for spec in it.get("part",{}).get("specs",{}):
+                    if spec.get("attribute",{}).get("name",{}) == "Manufacturer Lifecycle Status":
+                        # frappe.logger("frappe.web").debug({"Manufacturer Lifecycle Status": spec.get("displayValue",{})})
+                        manufacturer_lifecycle_status = spec.get("displayValue",{})
+                        update_item.db_set("manufacturer_lifecycle" + str(i), manufacturer_lifecycle_status)
+                    elif spec.get("attribute",{}).get("name",{}) == "RoHS":
+                        # frappe.logger("frappe.web").debug({"RoHS": spec.get("displayValue",{})})
+                        rohs = spec.get("displayValue",{})
+                        update_item.db_set("rohs" + str(i), rohs)
                 
                 if manufacturer_lifecycle_status == "":
                   update_item.db_set("manufacturer_lifecycle" + str(i), "Not Found")
